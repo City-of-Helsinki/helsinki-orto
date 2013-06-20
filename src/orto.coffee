@@ -118,137 +118,14 @@ $("#district-input").on 'change', ->
     borders.addTo map
     map.fitBounds borders.getBounds()
 
-show_plans = false
-
-map.on 'moveend', (ev) ->
-    if not show_plans
-        return
-    if map.getZoom() < 13
-        return
-    if plan_current_xfer
-        plan_current_xfer.abort()
-        plan_current_xfer = null
-    refresh_plans()
-
-default_style =
-    weight: 2
-    color: "blue"
-
-default_dev_style =
-    weight: 2
-    color: "red"
-
-hover_style =
-    color: "orange"
-
-plan_click = (ev) ->
-
-plan_hover_start = (ev) ->
-    @.setStyle hover_style
-
-plan_hover_end = (ev) ->
-    if @.in_effect
-        @.setStyle default_style
-    else
-        @.setStyle default_dev_style
-
-plans = {}
-draw_plans = (new_plans) ->
-    for obj in new_plans
-        if obj.id of plans
-            continue
-        plans[obj.id] = obj
-        geom = L.geoJson obj.geometry
-        geom.in_effect = obj.in_effect
-        if geom.in_effect
-            geom.setStyle default_style
-        else
-            geom.setStyle default_dev_style
-        geom.bindPopup "Kaava nr. <b>#{obj.origin_id}</b>"
-        geom.on 'mouseover', plan_hover_start
-        geom.on 'mouseout', plan_hover_end
-        geom.addTo map
-        obj.geom = geom
-
-plan_refresher = null
-refresh_plans = ->
-    if plan_refresher
-        plan_refresher.abort()
-    plan_refresher = new PlanRefresher()
-    plan_refresher.fetch()
-
-class PlanRefresher
-    constructor: ->
-        @should_abort = false
-        @current_xfer = null
-    abort: ->
-        @should_abort = true
-        if @current_xfer?
-            @current_xfer.abort()
-    fetch: ->
-        bounds = map.getBounds().toBBoxString()
-        url = GEOCODER_URL + 'v1/plan/'
-
-        params =
-            bbox: bounds
-            limit: 100
-
-        receive_plans = (data) =>
-            if @should_abort
-                return
-            draw_plans data.objects
-            next = data.meta.next
-            if next
-                @current_xfer = $.getJSON next, receive_plans
-
-        @current_xfer = $.getJSON url, params, receive_plans
-
-$("#show-plans").on 'click', ->
-    if show_plans
-        for plan_id of plans
-            plan = plans[plan_id]
-            map.removeLayer plan.geom
-        plans = {}
-        show_plans = false
-        $("#show-plans").html 'Show plans'
-        return
-    show_plans = true
-    if map.getZoom() < 13
-        map.setZoom 13
-        # refresh_plans() will be called automatically through the 'moveend' event.
-    else
-        refresh_plans()
-    $("#show-plans").html 'Hide plans'
 
 N_STEPS = 100
-MIN_OPACITY = 0.4
+MIN_OPACITY = 0.2
 
 layer_count = orto_layers.length
 slider_max = (layer_count - 1) * N_STEPS
 
-slider = $("#slider").slider
-    max: slider_max
-    value: slider_max
-    tooltip: 'hide'
-
 current_state = {}
-
-
-initialize_years = ->
-    $year_list = $("#year_list")
-    y_width = $year_list.width() / orto_years.length
-    y_width -= 20
-    for y in orto_years
-        s = $("<div>#{y}</div>")
-        s.css
-            "font-size": "24px"
-            "width": y_width
-            "float": "left"
-            "margin-left": "20px"
-            "opacity": MIN_OPACITY
-        $year_list.append s
-
-initialize_years()
 
 update_years = (year_a_idx, opacity) ->
     for year_el, idx in $("#year_list div")
@@ -260,13 +137,14 @@ update_years = (year_a_idx, opacity) ->
             opa = 0
         $(year_el).css {"opacity": MIN_OPACITY + opa}
 
-draw_screen = (val) ->
+update_screen = (val) ->
     if val == current_state.val
         return
     current_state.val = val
     layer_a_idx = Math.floor val / N_STEPS
     if val == slider_max
         layer_a_idx = layer_count - 2
+    current_state.layer_a_idx = layer_a_idx
 
     layer_b_op = (val % N_STEPS) / N_STEPS
     if val == (layer_a_idx + 1) * N_STEPS
@@ -284,6 +162,7 @@ draw_screen = (val) ->
     $("#year_a").css {opacity: 1 - layer_b_op}
     $("#year_b").css {opacity: layer_b_op}
 
+    # Set visibility flags on all layers and hide the non-visible layers.
     for al in orto_layers
         match = false
         for l in visible_layers
@@ -296,14 +175,11 @@ draw_screen = (val) ->
         else
             al.visible = true
 
+    # Add the visible layers that haven't yet been added.
     for l in visible_layers
         if not l.added
             l.addTo map
             l.added = true
-
-slider.on 'slide', (ev) ->
-    val = ev.value
-    draw_screen val
 
 # When the map starts moving, remove all non-visible layers
 # to save on bandwidth cost.
@@ -313,4 +189,53 @@ map.on "movestart", (ev) ->
             map.removeLayer l
             l.added = false
 
-draw_screen slider_max
+
+slider = $("#slider").slider
+    max: slider_max
+    value: slider_max
+    tooltip: 'hide'
+
+slider.on 'slide', (ev) ->
+    val = ev.value
+    update_screen val
+
+
+select_year = (idx) ->
+    val = idx * N_STEPS
+    slider.slider 'setValue', val
+    update_screen val
+
+initialize_years = ->
+    $year_list = $("#year_list")
+    y_width = $year_list.width() / orto_years.length
+    for y, idx in orto_years
+        $text_el = $("<div>#{y}</div>")
+        $text_el.css
+            "font-size": "24px"
+            "width": y_width
+            "float": "left"
+            "opacity": MIN_OPACITY
+            "text-align": "center"
+            "cursor": "pointer"
+        $text_el.data "index", idx
+        $text_el.click ->
+            idx = $(@).data 'index'
+            select_year idx
+        $year_list.append $text_el
+
+initialize_years()
+
+$(document).keydown (ev) ->
+    val = current_state.val
+    idx = Math.floor val / N_STEPS
+    if ev.keyCode == 37 # left arrow
+        idx = idx - 1
+        if idx < 0
+            idx = 0
+    else if ev.keyCode == 39 # right arrow
+        idx = idx + 1
+        if idx == layer_count
+            idx = layer_count - 1
+    select_year idx
+
+update_screen slider_max
