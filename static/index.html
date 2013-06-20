@@ -6,16 +6,21 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Wanha Helsinki</title>
+        <title>Helsinki ilmakuvina 1943-2012</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
+
         <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link href="vendor/css/slider.css" rel="stylesheet">
+
         <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script></script>
         <!-- Leaflet map library -->
         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" />
         <script src="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.js"></script>
+        <script type="text/javascript" src="vendor/js/Bing.js"></script>
+        <script type="text/javascript" src="vendor/js/bootstrap-slider.js"></script>
 
         <style>
             body {
@@ -34,28 +39,34 @@
         <![endif]-->
 
         <div class="container">
-            <div class="span7 row" style="margin-bottom: 20px">
-                <h1>Paikkatieto-demo</h1>
+            <div class="span8 row" style="margin-bottom: 20px">
+                <h1>Helsinki ilmakuvina 1943-2012</h1>
             </div>
             <div style="clear: both"></div>
             <div class="span8 row">
-                <input type="text" class="span4" id="address-input" placeholder="Input an address...">
-                <input type="text" class="span4" id="district-input" placeholder="Input a district...">
-            </div>
-            <div class="span8 row" style="margin-bottom: 20px">
-                <button id="show-plans" class="btn">Show plans</button>
+                <input type="text" class="span4" id="address-input" placeholder="Syötä osoite...">
+                <input type="text" class="span4" id="district-input" placeholder="Syötä kaupunginosa...">
             </div>
             <div style="clear: both"></div>
-            <div class="well span12 row">
-                <div id="map" style="margin-left: 10px; width: 900px; height: 800px"></div>
+            <div id="year_list" class="span8 row" style="margin-top: 40px">
+            </div>
+            <div class="span6 row" style="margin-bottom: 20px; margin-top: 10px">
+                <div id="slider" class="span8"></div>
+            </div>
+            <div class="well span8 row">
+                <div id="map" style="margin-left: 10px; width: 750px; height: 600px"></div>
             </div>
             <div style="clear: both"></div>
             <div class="row">
                 <ol id="nearby-addr-list"></ol>
             </div>
+            <div style="margin-top: 30px">
+                <a href="http://dev.hel.fi"><img style="width: 180px" src="images/hel-heart-dev.png"></a>
+                <a style="margin-left: 100px" href="http://www.hri.fi"><img src="images/hri.png"></a>
+                <a style="margin-left: 100px" href="http://codeforeurope.net"><img style="width: 180px" src="images/codeforeurope.png"></a>
+            </div>
         </div> <!-- /container -->
 
-        <script type="text/javascript" src="vendor/js/Bing.js"></script>
         <script type="text/javascript" src="js/orto.js"></script>
     </body>
 </html>

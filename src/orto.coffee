@@ -1,43 +1,30 @@
-map = L.map('map').setView([60.184167, 24.949167], 11)
+map = L.map('map').setView([60.171944, 24.941389], 15)
 osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png',
     maxZoom: 18,
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
 )
 
-orto1943_layer = L.tileLayer.wms "http://144.76.26.165/geoserver/gwc/service/wms",
-    layers: 'kmo:orto1943'
-orto1964_layer = L.tileLayer.wms "http://144.76.26.165/geoserver/gwc/service/wms",
-    layers: 'kmo:orto1964'
-orto1976_layer = L.tileLayer.wms "http://144.76.26.165/geoserver/gwc/service/wms",
-    layers: 'kmo:orto1976'
-orto1988_layer = L.tileLayer.wms "http://144.76.26.165/geoserver/gwc/service/wms",
-    layers: 'kmo:orto1988'
-osm_roads_layer = L.tileLayer.wms "http://144.76.26.165/geoserver/gwc/service/wms",
-    layers: 'kmo:planet_osm_line'
-    format: 'image/png'
-    transparent: true
-opaskartta_layer = L.tileLayer.wms "http://144.76.26.165/geoserver/gwc/service/wms",
-    layers: 'kmo:OpPks_4m'
-    format: 'image/png'
-
+orto1943_layer = L.tileLayer.wms WMS_SERVER_URL,
+    layers: 'hel:orto1943'
+orto1964_layer = L.tileLayer.wms WMS_SERVER_URL,
+    layers: 'hel:orto1964'
+orto1976_layer = L.tileLayer.wms WMS_SERVER_URL,
+    layers: 'hel:orto1976'
+orto1988_layer = L.tileLayer.wms WMS_SERVER_URL,
+    layers: 'hel:orto1988'
 now_layer = new L.BingLayer "AuLflCabjUYZCzLW7RP4eUi2aF_8r071tR8PycPuJIQ-n9-Tb2QYTYpjRdQl_iy8"
 
-now_layer.addTo(map)
-#osm_roads_layer.addTo(map)
+orto_layers = [
+    orto1943_layer, orto1964_layer, orto1976_layer, orto1988_layer, now_layer
+]
+orto_years = [
+    1943, 1964, 1976, 1988, 2012
+]
 
-map.addControl new L.Control.Layers {
-    'Map': osm_layer
-    'Opaskartta': opaskartta_layer
-    '2013': now_layer
-    '1988': orto1988_layer
-    '1976': orto1976_layer
-    '1964': orto1964_layer
-    '1943': orto1943_layer
-}, {
-    'OSM Roads': osm_roads_layer
-}
-#stamen_layer = new L.StamenTileLayer("watercolor")
-#stamen_layer.addTo(map)
+osm_roads_layer = L.tileLayer.wms WMS_SERVER_URL,
+    layers: 'osm:planet_osm_line'
+    format: 'image/png'
+    transparent: true
 
 marker = null
 input_addr_map = null
@@ -126,6 +113,7 @@ $("#district-input").on 'change', ->
     borders = L.geoJson match_obj.borders,
         style:
             weight: 2
+            fillOpacity: 0.08
     borders.bindPopup match_obj.name
     borders.addTo map
     map.fitBounds borders.getBounds()
@@ -231,3 +219,98 @@ $("#show-plans").on 'click', ->
     else
         refresh_plans()
     $("#show-plans").html 'Hide plans'
+
+N_STEPS = 100
+MIN_OPACITY = 0.4
+
+layer_count = orto_layers.length
+slider_max = (layer_count - 1) * N_STEPS
+
+slider = $("#slider").slider
+    max: slider_max
+    value: slider_max
+    tooltip: 'hide'
+
+current_state = {}
+
+
+initialize_years = ->
+    $year_list = $("#year_list")
+    y_width = $year_list.width() / orto_years.length
+    y_width -= 20
+    for y in orto_years
+        s = $("<div>#{y}</div>")
+        s.css
+            "font-size": "24px"
+            "width": y_width
+            "float": "left"
+            "margin-left": "20px"
+            "opacity": MIN_OPACITY
+        $year_list.append s
+
+initialize_years()
+
+update_years = (year_a_idx, opacity) ->
+    for year_el, idx in $("#year_list div")
+        if idx == year_a_idx
+            opa = opacity * (1 - MIN_OPACITY)
+        else if idx == year_a_idx + 1
+            opa = (1 - opacity) * (1 - MIN_OPACITY)
+        else
+            opa = 0
+        $(year_el).css {"opacity": MIN_OPACITY + opa}
+
+draw_screen = (val) ->
+    if val == current_state.val
+        return
+    current_state.val = val
+    layer_a_idx = Math.floor val / N_STEPS
+    if val == slider_max
+        layer_a_idx = layer_count - 2
+
+    layer_b_op = (val % N_STEPS) / N_STEPS
+    if val == (layer_a_idx + 1) * N_STEPS
+        layer_b_op = 1.0
+
+    visible_layers = [orto_layers[layer_a_idx], orto_layers[layer_a_idx+1]]
+    visible_layers[0].setOpacity 1 - layer_b_op
+    visible_layers[1].setOpacity layer_b_op
+    current_state.visible_layers = visible_layers
+
+    update_years layer_a_idx, 1 - layer_b_op
+
+    $("#year_a").html orto_years[layer_a_idx]
+    $("#year_b").html orto_years[layer_a_idx + 1]
+    $("#year_a").css {opacity: 1 - layer_b_op}
+    $("#year_b").css {opacity: layer_b_op}
+
+    for al in orto_layers
+        match = false
+        for l in visible_layers
+            if l == al
+                match = true
+                break
+        if not match
+            al.setOpacity 0
+            al.visible = false
+        else
+            al.visible = true
+
+    for l in visible_layers
+        if not l.added
+            l.addTo map
+            l.added = true
+
+slider.on 'slide', (ev) ->
+    val = ev.value
+    draw_screen val
+
+# When the map starts moving, remove all non-visible layers
+# to save on bandwidth cost.
+map.on "movestart", (ev) ->
+    for l in orto_layers
+        if not l.visible and l.added
+            map.removeLayer l
+            l.added = false
+
+draw_screen slider_max
