@@ -4,24 +4,19 @@ osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
 )
 
-orto1943_layer = L.tileLayer.wms WMS_SERVER_URL,
-    layers: 'hel:orto1943'
-orto1964_layer = L.tileLayer.wms WMS_SERVER_URL,
-    layers: 'hel:orto1964'
-orto1976_layer = L.tileLayer.wms WMS_SERVER_URL,
-    layers: 'hel:orto1976'
-orto1988_layer = L.tileLayer.wms WMS_SERVER_URL,
-    layers: 'hel:orto1988'
-now_layer = new L.BingLayer "AuLflCabjUYZCzLW7RP4eUi2aF_8r071tR8PycPuJIQ-n9-Tb2QYTYpjRdQl_iy8"
+make_tile_layer = (year) ->
+    layer = L.tileLayer WMS_SERVER_BASE_URL + "tms/1.0.0/hel:orto#{year}@EPSG:900913@jpeg/{z}/{x}/{y}.jpeg",
+        tms:true
+    return layer
 
-orto_layers = [
-    orto1943_layer, orto1964_layer, orto1976_layer, orto1988_layer, now_layer
-]
+#now_layer = new L.BingLayer "AuLflCabjUYZCzLW7RP4eUi2aF_8r071tR8PycPuJIQ-n9-Tb2QYTYpjRdQl_iy8"
+
 orto_years = [
     1943, 1964, 1976, 1988, 2012
 ]
+orto_layers = (make_tile_layer year for year in orto_years)
 
-osm_roads_layer = L.tileLayer.wms WMS_SERVER_URL,
+osm_roads_layer = L.tileLayer.wms WMS_SERVER_BASE_URL + "wms/",
     layers: 'osm:planet_osm_line'
     format: 'image/png'
     transparent: true
