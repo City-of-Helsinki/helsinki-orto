@@ -4,8 +4,21 @@ osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
 )
 
+get_wfs = (type, args, callback) ->
+    url = GEOSERVER_BASE_URL + 'wfs/'
+    params =
+        service: 'WFS'
+        version: '1.1.0'
+        request: 'GetFeature'
+        typeName: type
+        srsName: 'EPSG:4326'
+        outputFormat: 'json'
+    for key of args
+        params[key] = args[key]
+    $.getJSON url, params, callback
+
 make_tile_layer = (year) ->
-    layer = L.tileLayer WMS_SERVER_BASE_URL + "tms/1.0.0/hel:orto#{year}@EPSG:900913@jpeg/{z}/{x}/{y}.jpeg",
+    layer = L.tileLayer GWC_BASE_URL + "tms/1.0.0/hel:orto#{year}@EPSG:900913@jpeg/{z}/{x}/{y}.jpeg",
         tms:true
     return layer
 
@@ -16,7 +29,7 @@ orto_years = [
 ]
 orto_layers = (make_tile_layer year for year in orto_years)
 
-osm_roads_layer = L.tileLayer.wms WMS_SERVER_BASE_URL + "wms/",
+osm_roads_layer = L.tileLayer.wms GWC_BASE_URL + "wms/",
     layers: 'osm:planet_osm_line'
     format: 'image/png'
     transparent: true
@@ -234,3 +247,41 @@ $(document).keydown (ev) ->
     select_year idx
 
 update_screen slider_max
+
+colors = ['#feedde', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d94801', '#8c2d04']
+
+building_styler = (feat) ->
+    ret =
+        weight: 1
+        opacity: 1.0
+        fillOpacity: 0.4
+    year = parseInt feat.properties.valmvuosi
+    if not year or year == 9999
+        color = '#eee'
+    else
+        start_year = 1890
+        end_year = 2013
+        if year < start_year
+            year = start_year
+        n = Math.round (year - start_year) * colors.length / (end_year - start_year)
+        n = colors.length - n - 1
+        color = colors[n]
+    ret.color = color
+    console.log ret
+    return ret
+
+building_layer = null
+
+map.on 'moveend', ->
+    str = map.getBounds().toBBoxString() + ',EPSG:4326'
+    get_wfs 'hel:rakennukset',
+        maxFeatures: 200
+        bbox: str
+        propertyName: 'valmvuosi,osoite,wkb_geometry'
+        , (data) ->
+            if building_layer
+                map.removeLayer building_layer
+            building_layer = L.geoJson data,
+                style: building_styler
+            building_layer.addTo map
+        #filter: "<PropertyIsEqualTo><PropertyName>valmvuosi</PropertyName><Literal>2008</Literal></PropertyIsEqualTo>"
