@@ -22,8 +22,6 @@ make_tile_layer = (year) ->
         tms:true
     return layer
 
-#now_layer = new L.BingLayer "AuLflCabjUYZCzLW7RP4eUi2aF_8r071tR8PycPuJIQ-n9-Tb2QYTYpjRdQl_iy8"
-
 orto_years = [
     1943, 1964, 1976, 1988, 2012
 ]
@@ -135,7 +133,11 @@ slider_max = (layer_count - 1) * N_STEPS
 
 current_state = {}
 
-update_years = (year_a_idx, opacity) ->
+update_years = (state) ->
+    year_a_idx = state.layer_a_idx
+    opacity = 1 - state.layer_b_opacity
+    console.log year_a_idx
+    console.log opacity
     for year_el, idx in $("#year_list div")
         if idx == year_a_idx
             opa = opacity * (1 - MIN_OPACITY)
@@ -145,30 +147,38 @@ update_years = (year_a_idx, opacity) ->
             opa = 0
         $(year_el).css {"opacity": MIN_OPACITY + opa}
 
+calculate_year_data = (val) ->
+    layer_a_idx = Math.floor val / N_STEPS
+    if val == slider_max
+        layer_a_idx = layer_count - 2
+    layer_b_op = (val % N_STEPS) / N_STEPS
+    if val == (layer_a_idx + 1) * N_STEPS
+        layer_b_op = 1.0
+    # Figure out the year between the two orto imagery years.
+    year_a = orto_years[layer_a_idx]
+    diff = orto_years[layer_a_idx + 1] - year_a
+    year = Math.round year_a + diff * layer_b_op
+
+    return {layer_a_idx: layer_a_idx, layer_b_opacity: layer_b_op, year: year}
+
 update_screen = (val) ->
     if val == current_state.val
         return
     current_state.val = val
-    layer_a_idx = Math.floor val / N_STEPS
-    if val == slider_max
-        layer_a_idx = layer_count - 2
-    current_state.layer_a_idx = layer_a_idx
+    state = calculate_year_data val
+    current_state.layer_a_idx = state.layer_a_idx
 
-    layer_b_op = (val % N_STEPS) / N_STEPS
-    if val == (layer_a_idx + 1) * N_STEPS
-        layer_b_op = 1.0
-
-    visible_layers = [orto_layers[layer_a_idx], orto_layers[layer_a_idx+1]]
-    visible_layers[0].setOpacity 1 - layer_b_op
-    visible_layers[1].setOpacity layer_b_op
+    visible_layers = [orto_layers[state.layer_a_idx], orto_layers[state.layer_a_idx+1]]
+    visible_layers[0].setOpacity 1 - state.layer_b_opacity
+    visible_layers[1].setOpacity state.layer_b_opacity
     current_state.visible_layers = visible_layers
 
-    update_years layer_a_idx, 1 - layer_b_op
+    update_years state
 
-    $("#year_a").html orto_years[layer_a_idx]
-    $("#year_b").html orto_years[layer_a_idx + 1]
-    $("#year_a").css {opacity: 1 - layer_b_op}
-    $("#year_b").css {opacity: layer_b_op}
+    $("#year_a").html orto_years[state.layer_a_idx]
+    $("#year_b").html orto_years[state.layer_a_idx + 1]
+    $("#year_a").css {opacity: 1 - state.layer_b_opacity}
+    $("#year_b").css {opacity: state.layer_b_opacity}
 
     # Set visibility flags on all layers and hide the non-visible layers.
     for al in orto_layers
