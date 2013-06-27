@@ -12,7 +12,7 @@ get_wfs = (type, args, callback) ->
         request: 'GetFeature'
         typeName: type
         srsName: 'EPSG:4326'
-        outputFormat: 'json'
+        outputFormat: 'application/json'
     for key of args
         params[key] = args[key]
     $.getJSON url, params, callback
@@ -136,8 +136,6 @@ current_state = {}
 update_years = (state) ->
     year_a_idx = state.layer_a_idx
     opacity = 1 - state.layer_b_opacity
-    console.log year_a_idx
-    console.log opacity
     for year_el, idx in $("#year_list div")
         if idx == year_a_idx
             opa = opacity * (1 - MIN_OPACITY)
@@ -161,6 +159,11 @@ calculate_year_data = (val) ->
 
     return {layer_a_idx: layer_a_idx, layer_b_opacity: layer_b_op, year: year}
 
+redraw_buildings = ->
+    if not building_layer
+        return
+    building_layer.setStyle building_styler
+
 update_screen = (val) ->
     if val == current_state.val
         return
@@ -172,6 +175,11 @@ update_screen = (val) ->
     visible_layers[0].setOpacity 1 - state.layer_b_opacity
     visible_layers[1].setOpacity state.layer_b_opacity
     current_state.visible_layers = visible_layers
+    if current_state.year != year
+        current_state.year = year
+        year_changed = true
+    else
+        year_changed = false
 
     update_years state
 
@@ -179,6 +187,8 @@ update_screen = (val) ->
     $("#year_b").html orto_years[state.layer_a_idx + 1]
     $("#year_a").css {opacity: 1 - state.layer_b_opacity}
     $("#year_b").css {opacity: state.layer_b_opacity}
+
+    $("#current_year").html year
 
     # Set visibility flags on all layers and hide the non-visible layers.
     for al in orto_layers
@@ -198,6 +208,10 @@ update_screen = (val) ->
         if not l.added
             l.addTo map
             l.added = true
+
+    if year_changed
+        redraw_buildings()
+
 
 # When the map starts moving, remove all non-visible layers
 # to save on bandwidth cost.
@@ -266,32 +280,44 @@ building_styler = (feat) ->
         opacity: 1.0
         fillOpacity: 0.4
     year = parseInt feat.properties.valmvuosi
+    if current_state.year and year > current_state.year
+        ret.opacity = 0
+        ret.fillOpacity = 0
     if not year or year == 9999
         color = '#eee'
     else
         start_year = 1890
-        end_year = 2013
+        end_year = new Date().getFullYear()
         if year < start_year
             year = start_year
-        n = Math.round (year - start_year) * colors.length / (end_year - start_year)
+        n = Math.floor (year - start_year) * colors.length / (end_year - start_year)
         n = colors.length - n - 1
         color = colors[n]
     ret.color = color
-    console.log ret
     return ret
 
 building_layer = null
 
+window.show_buildings = false
+
 map.on 'moveend', ->
+    if map.getZoom() < 16 or not window.show_buildings
+        if building_layer
+            map.removeLayer building_layer
+            building_layer = null
+        return
     str = map.getBounds().toBBoxString() + ',EPSG:4326'
     get_wfs 'hel:rakennukset',
-        maxFeatures: 200
+        maxFeatures: 500
         bbox: str
-        propertyName: 'valmvuosi,osoite,wkb_geometry'
+        propertyName: 'valmvuosi,osoite,wkb_geometry_s2'
         , (data) ->
             if building_layer
                 map.removeLayer building_layer
             building_layer = L.geoJson data,
                 style: building_styler
+                onEachFeature: (feat, layer) ->
+                    year = feat.properties.valmvuosi
+                    address = feat.properties.osoite
+                    layer.bindPopup "<b>Valm.vuosi #{year}</b><br/>#{address}"
             building_layer.addTo map
-        #filter: "<PropertyIsEqualTo><PropertyName>valmvuosi</PropertyName><Literal>2008</Literal></PropertyIsEqualTo>"
