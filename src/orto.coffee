@@ -1,4 +1,5 @@
 map = L.map('map').setView([60.171944, 24.941389], 15)
+hash = new L.Hash map
 
 osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/999/256/{z}/{x}/{y}.png',
     maxZoom: 18,
