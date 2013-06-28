@@ -300,7 +300,7 @@ building_layer = null
 
 window.show_buildings = false
 
-map.on 'moveend', ->
+refresh_buildings = ->
     if map.getZoom() < 16 or not window.show_buildings
         if building_layer
             map.removeLayer building_layer
@@ -321,3 +321,15 @@ map.on 'moveend', ->
                     address = feat.properties.osoite
                     layer.bindPopup "<b>Valm.vuosi #{year}</b><br/>#{address}"
             building_layer.addTo map
+
+map.on 'moveend', refresh_buildings
+
+$("#show-buildings-btn").click ->
+    if not window.show_buildings
+        # enable
+        window.show_buildings = true
+        $(this).html "Piilota rakennukset"
+    else
+        window.show_buildings = false
+        $(this).html "Näytä rakennukset"
+    refresh_buildings()
