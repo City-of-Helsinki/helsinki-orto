@@ -17,8 +17,8 @@
         <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script></script>
         <!-- Leaflet map library -->
-        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" />
-        <script src="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.js"></script>
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.css" />
+        <script src="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.js"></script>
         <script type="text/javascript" src="vendor/js/leaflet-hash.js"></script>
         <script type="text/javascript" src="vendor/js/bootstrap-slider.js"></script>
 
@@ -43,9 +43,9 @@
             <div class="span8 row" style="margin-bottom: 20px">
                 <h1 style="margin-bottom: 40px">Helsinki ilmakuvina 1943–2012</h1>
                 <p>Miten Helsinki on kehittynyt vuosikymmenestä toiseen? Nyt voit kurkistaa, miten omaa asuinympäristösi on rakennettu vuodesta 1943 lähtien. Lähtöaineistona palvelu käyttää HRI-katalogiin julkaistuja <a href="http://www.hri.fi/fi/ajankohtaista/historialliset-ilmakuvat-nayttavat-helsingin-kehityksen/">avoimia ilmakuvia</a>.</p>
-                <p>Klikkaamalla Näytä rakennukset -nappulaa ja tarkentamalla karttaa, näet lisäksi valittuun vuoteen mennessä valmistuneet rakennukset. Mukana ei ole purettujen rakennusten tietoja, joten vanhempien vuosien tapauksessa kaikkien rakennusten tietoja ei voida näyttää. <a class="readmore" href="#"><small>Lue lisää...</small></a></p>
+                <p>Klikkaamalla Näytä rakennukset -nappulaa näet kartalla lisäksi ne rakennukset, jotka ovat valmistuneet valittuun vuoteen mennessä. Mukana ei ole purettujen rakennusten tietoja, joten vanhempien vuosien tapauksessa kaikkien rakennusten tietoja ei voida näyttää. Karttaa pitää tarkentaa, jotta rakennustietoja näytetään. <a class="readmore" href="#"><small>Lue lisää...</small></a></p>
                 <div class="hide moreinfo">
-                    <p>Historiallisia ilmakuvia ei ole aivan koko nyky-Helsingin alueelta. Vuoden 1943 ilmakuva on erityisen suppea.</p>
+                    <p>Historiallisia ilmakuvia ei ole koko nyky-Helsingin alueelta. Vuoden 1943 ilmakuva on erityisen suppea.</p>
                     <p>Palvelun on toteuttanut Helsingin kaupungin Code for Europe -kumppanikoodari. Palvelu on <a href="https://github.com/City-of-Helsinki/helsinki-orto">avointa lähdekoodia</a> ja vapaasti muiden sovelluskehittäjien hyödynnettävissä.</p>
                 </div>
             </div>
@@ -70,13 +70,12 @@
                 </div>
             </div>
 
-            <div class="well span8 row">
+            <div class="well span8 row" style="margin-bottom: 10px">
                 <div id="map" style="margin-left: 10px; width: 750px; height: 600px"></div>
             </div>
             <div style="clear: both"></div>
             <div class="span8 row">
                 <small>Vuoden 2012 ilmakuva-aineisto &copy; Kaupunkimittausosasto, Helsinki 01/2013 <br/></small>
-                <small>Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a></small>
             </div>
             <div class="row">
                 <ol id="nearby-addr-list"></ol>

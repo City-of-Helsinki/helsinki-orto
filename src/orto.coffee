@@ -1,4 +1,8 @@
-map = L.map('map').setView([60.171944, 24.941389], 15)
+bounds = new L.LatLngBounds [60.114,24.750], [60.32, 25.300]
+map = L.map 'map',
+    minZoom: 11
+    maxBounds: bounds
+map.setView([60.171944, 24.941389], 15)
 hash = new L.Hash map
 
 osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/999/256/{z}/{x}/{y}.png',
@@ -22,6 +26,7 @@ get_wfs = (type, args, callback) ->
 make_tile_layer = (year) ->
     opts =
         tms: true
+        maxZoom: 18
     layer = L.tileLayer GWC_BASE_URL + "tms/1.0.0/hel:orto#{year}@EPSG:900913@jpeg/{z}/{x}/{y}.jpeg", opts
     return layer
 
@@ -301,6 +306,13 @@ $(document).keydown (ev) ->
         idx = idx + 1
         if idx == layer_count
             idx = layer_count - 1
+    else
+        return
+
+    # if the keypress is for the map element, do not process it here.
+    target = $(ev.target)
+    if target.closest("#map").length
+        return
     select_year idx
 
 update_screen slider_max
@@ -341,7 +353,7 @@ refresh_buildings = ->
     get_wfs 'hel:rakennukset',
         maxFeatures: 500
         bbox: str
-        propertyName: 'valmvuosi,osoite,wkb_geometry_s2'
+        propertyName: 'valmvuosi,osoite,kayttotark_taso3,wkb_geometry_s2'
         , (data) ->
             if building_layer
                 map.removeLayer building_layer
@@ -350,7 +362,12 @@ refresh_buildings = ->
                 onEachFeature: (feat, layer) ->
                     year = feat.properties.valmvuosi
                     address = feat.properties.osoite
-                    layer.bindPopup "<b>Valm.vuosi #{year}</b><br/>#{address}"
+                    if address
+                        address = address.replace /(\d){5} [A-Z]+/, ""
+                    use = feat.properties.kayttotark_taso3
+                    if use
+                        use = use.replace /(\d)+ /, ""
+                    layer.bindPopup "<b>Valm.vuosi #{year}</b><br/>#{use}<br/><b>#{address}</b>"
             building_layer.addTo map
 
 map.on 'moveend', refresh_buildings
