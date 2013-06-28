@@ -1,5 +1,6 @@
 map = L.map('map').setView([60.171944, 24.941389], 15)
-osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png',
+
+osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/999/256/{z}/{x}/{y}.png',
     maxZoom: 18,
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
 )
@@ -18,14 +19,22 @@ get_wfs = (type, args, callback) ->
     $.getJSON url, params, callback
 
 make_tile_layer = (year) ->
-    layer = L.tileLayer GWC_BASE_URL + "tms/1.0.0/hel:orto#{year}@EPSG:900913@jpeg/{z}/{x}/{y}.jpeg",
-        tms:true
+    opts =
+        tms: true
+    layer = L.tileLayer GWC_BASE_URL + "tms/1.0.0/hel:orto#{year}@EPSG:900913@jpeg/{z}/{x}/{y}.jpeg", opts
     return layer
 
 orto_years = [
     1943, 1964, 1976, 1988, 2012
 ]
 orto_layers = (make_tile_layer year for year in orto_years)
+###
+orto2012_layer = L.tileLayer.wms 'http://kartta.hel.fi/wms/code4europe.mapdef',
+    layers: 'Ortoilmakuva_05cm_2012'
+    format: 'image/jpeg'
+    attribution: '&copy;Kaupunkimittausosasto, Helsinki 01/2013'
+orto_layers[orto_layers.length - 1] = orto2012_layer
+###
 
 osm_roads_layer = L.tileLayer.wms GWC_BASE_URL + "wms/",
     layers: 'osm:planet_osm_line'
@@ -94,6 +103,8 @@ $("#address-input").on 'change', ->
     map.setView([coords[1], coords[0]], 17)
 
 input_district_map = null
+active_district = null
+
 $("#district-input").typeahead(
     source: (query, process_cb) ->
         $.getJSON(GEOCODER_URL + 'v1/district/', {input: query}, (data) ->
@@ -110,12 +121,21 @@ $("#district-input").typeahead(
 
 $("#district-input").on 'change', ->
     match_obj = null
+    if not $(this).val().length
+        if active_district
+            map.removeLayer active_district
+            active_district = null
+        return
+
     for obj in input_district_map
         if obj.name == $(this).val()
             match_obj = obj
             break
     if not match_obj
         return
+
+    if active_district
+        map.removeLayer active_district
     borders = L.geoJson match_obj.borders,
         style:
             weight: 2
@@ -123,7 +143,10 @@ $("#district-input").on 'change', ->
     borders.bindPopup match_obj.name
     borders.addTo map
     map.fitBounds borders.getBounds()
+    active_district = borders
 
+window.show_buildings = false
+window.show_orto = true
 
 N_STEPS = 100
 MIN_OPACITY = 0.2
@@ -164,13 +187,22 @@ redraw_buildings = ->
         return
     building_layer.setStyle building_styler
 
-update_screen = (val) ->
-    if val == current_state.val
+update_screen = (val, force_refresh) ->
+    if not window.show_orto
+        for l in orto_layers
+            if not l.added
+                continue
+            map.removeLayer l
+            l.added = false
+        if not osm_layer.added
+            
+            osm_layer.addTo map
+        return
+    if not force_refresh and val == current_state.val
         return
     current_state.val = val
     state = calculate_year_data val
     current_state.layer_a_idx = state.layer_a_idx
-
     visible_layers = [orto_layers[state.layer_a_idx], orto_layers[state.layer_a_idx+1]]
     visible_layers[0].setOpacity 1 - state.layer_b_opacity
     visible_layers[1].setOpacity state.layer_b_opacity
@@ -298,8 +330,6 @@ building_styler = (feat) ->
 
 building_layer = null
 
-window.show_buildings = false
-
 refresh_buildings = ->
     if map.getZoom() < 16 or not window.show_buildings
         if building_layer
@@ -325,11 +355,26 @@ refresh_buildings = ->
 map.on 'moveend', refresh_buildings
 
 $("#show-buildings-btn").click ->
-    if not window.show_buildings
-        # enable
-        window.show_buildings = true
-        $(this).html "Piilota rakennukset"
-    else
-        window.show_buildings = false
+    if window.show_buildings
         $(this).html "Näytä rakennukset"
+        $(this).addClass "btn-success"
+        $(this).removeClass "btn-danger"
+    else
+        $(this).html "Piilota rakennukset"
+        $(this).removeClass "btn-success"
+        $(this).addClass "btn-danger"
+
+    window.show_buildings = not window.show_buildings
     refresh_buildings()
+
+$("#show-orto-btn").click ->
+    if not window.show_orto
+        $(this).html "Piilota ilmakuva"
+    else
+        $(this).html "Näytä ilmakuva"
+    window.show_orto = not window.show_orto
+    update_screen current_state.val, true
+
+$(".readmore").click ->
+    $(".moreinfo").slideDown()
+    $(this).hide()

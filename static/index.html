@@ -6,11 +6,11 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Helsinki ilmakuvina 1943-2012</title>
-        <meta name="description" content="">
+        <title>Helsinki ilmakuvina 1943–2012</title>
+        <!-- <meta name="description" content=""> -->
         <meta name="viewport" content="width=device-width">
 
-        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet">
         <link href="vendor/css/slider.css" rel="stylesheet">
 
         <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -41,7 +41,12 @@
 
         <div class="container">
             <div class="span8 row" style="margin-bottom: 20px">
-                <h1>Helsinki ilmakuvina 1943-2012</h1>
+                <h1 style="margin-bottom: 40px">Helsinki ilmakuvina 1943–2012</h1>
+                <p>Miten Helsinki on kehittynyt vuosikymmenestä toiseen? Nyt voit kurkistaa, miten omaa asuinympäristösi on rakennettu vuodesta 1943 lähtien. Lähtöaineistona palvelu käyttää HRI-katalogiin julkaistuja <a href="http://www.hri.fi/fi/ajankohtaista/historialliset-ilmakuvat-nayttavat-helsingin-kehityksen/">avoimia ilmakuvia</a>.</p>
+                <p>Klikkaamalla Näytä rakennukset -nappulaa ja tarkentamalla karttaa, näet lisäksi valittuun vuoteen mennessä valmistuneet rakennukset. Mukana ei ole purettujen rakennusten tietoja, joten vanhempien vuosien tapauksessa kaikkien rakennusten tietoja ei voida näyttää. <a class="readmore" href="#"><small>Lue lisää...</small></a></p>
+                <div class="hide moreinfo">
+                    <p>Palvelun on toteuttanut Helsingin kaupungin Code for Europe -kumppanikoodari. Palvelu on <a href="https://github.com/City-of-Helsinki/helsinki-orto">avointa lähdekoodia</a> ja vapaasti muiden sovelluskehittäjien hyödynnettävissä.</p>
+                </div>
             </div>
             <div style="clear: both"></div>
             <div class="span8 row">
@@ -50,12 +55,13 @@
             </div>
             <div style="clear: both"></div>
             <div class="span4 row">
-                <button id="show-buildings-btn" class="btn btn-primary">Näytä rakennukset</button>
+                <button id="show-buildings-btn" class="btn btn-success">Näytä rakennukset</button>
+                <button id="show-orto-btn" class="btn btn-danger hide">Piilota ilmakuva</button>
             </div>
             <div style="clear: both"></div>
             <div id="year_list" class="span8 row" style="margin-top: 40px">
             </div>
-            <div class="span6 row" style="margin-bottom: 20px; margin-top: 10px">
+            <div class="span8 row" style="margin-bottom: 20px; margin-top: 10px">
                 <div id="slider" class="span8"></div>
             </div>
             <div class="span8 row">
@@ -67,10 +73,14 @@
                 <div id="map" style="margin-left: 10px; width: 750px; height: 600px"></div>
             </div>
             <div style="clear: both"></div>
+            <div class="span8 row">
+                <small>Vuoden 2012 ilmakuva-aineisto &copy; Kaupunkimittausosasto, Helsinki 01/2013 <br/></small>
+                <small>Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a></small>
+            </div>
             <div class="row">
                 <ol id="nearby-addr-list"></ol>
             </div>
-            <div style="margin-top: 30px">
+            <div class="span8 row" style="margin-top: 30px;">
                 <a href="http://dev.hel.fi"><img style="width: 180px" src="images/hel-heart-dev.png"></a>
                 <a style="margin-left: 100px" href="http://www.hri.fi"><img src="images/hri.png"></a>
                 <a style="margin-left: 100px" href="http://codeforeurope.net"><img style="width: 180px" src="images/codeforeurope.png"></a>
