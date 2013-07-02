@@ -46,6 +46,8 @@ osm_roads_layer = L.tileLayer.wms GWC_BASE_URL + "wms/",
     layers: 'osm:planet_osm_line'
     format: 'image/png'
     transparent: true
+osm_roads_layer.setOpacity 0.6
+osm_roads_layer.setZIndex 5
 
 marker = null
 input_addr_map = null
@@ -152,7 +154,7 @@ $("#district-input").on 'change', ->
     active_district = borders
 
 window.show_buildings = false
-window.show_orto = true
+window.show_roads = false
 
 N_STEPS = 100
 MIN_OPACITY = 0.2
@@ -194,7 +196,7 @@ redraw_buildings = ->
     building_layer.setStyle building_styler
 
 update_screen = (val, force_refresh) ->
-    if not window.show_orto
+    ###if not window.show_orto
         for l in orto_layers
             if not l.added
                 continue
@@ -204,6 +206,7 @@ update_screen = (val, force_refresh) ->
             
             osm_layer.addTo map
         return
+    ###
     if not force_refresh and val == current_state.val
         return
     current_state.val = val
@@ -397,3 +400,26 @@ BuildingControl = L.Control.extend
         return $button[0]
 
 new BuildingControl().addTo map
+
+RoadsControl = L.Control.extend
+    click: ->
+        if window.show_roads
+            $(this).html "Näytä tiet"
+            $(this).addClass "btn-success"
+            $(this).removeClass "btn-danger"
+            map.removeLayer osm_roads_layer
+        else
+            $(this).html "Piilota tiet"
+            $(this).removeClass "btn-success"
+            $(this).addClass "btn-danger"
+            map.addLayer osm_roads_layer
+
+        window.show_roads = not window.show_roads
+    options:
+        position: 'topright'
+    onAdd: (map) ->
+        $button = $('<button id="show-roads-btn" class="btn btn-success">Näytä tiet</button>')
+        $button.click @.click
+        return $button[0]
+
+new RoadsControl().addTo map
