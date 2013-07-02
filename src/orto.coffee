@@ -372,27 +372,28 @@ refresh_buildings = ->
 
 map.on 'moveend', refresh_buildings
 
-$("#show-buildings-btn").click ->
-    if window.show_buildings
-        $(this).html "Näytä rakennukset"
-        $(this).addClass "btn-success"
-        $(this).removeClass "btn-danger"
-    else
-        $(this).html "Piilota rakennukset"
-        $(this).removeClass "btn-success"
-        $(this).addClass "btn-danger"
-
-    window.show_buildings = not window.show_buildings
-    refresh_buildings()
-
-$("#show-orto-btn").click ->
-    if not window.show_orto
-        $(this).html "Piilota ilmakuva"
-    else
-        $(this).html "Näytä ilmakuva"
-    window.show_orto = not window.show_orto
-    update_screen current_state.val, true
-
 $(".readmore").click ->
     $(".moreinfo").slideDown()
     $(this).hide()
+
+BuildingControl = L.Control.extend
+    click: ->
+        if window.show_buildings
+            $(this).html "Näytä rakennukset"
+            $(this).addClass "btn-success"
+            $(this).removeClass "btn-danger"
+        else
+            $(this).html "Piilota rakennukset"
+            $(this).removeClass "btn-success"
+            $(this).addClass "btn-danger"
+
+        window.show_buildings = not window.show_buildings
+        refresh_buildings()
+    options:
+        position: 'topright'
+    onAdd: (map) ->
+        $button = $('<button id="show-buildings-btn" class="btn btn-success">Näytä rakennukset</button>')
+        $button.click @.click
+        return $button[0]
+
+new BuildingControl().addTo map

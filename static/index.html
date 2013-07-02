@@ -9,8 +9,9 @@
         <title>Helsinki ilmakuvina 1943–2012</title>
         <!-- <meta name="description" content=""> -->
         <meta name="viewport" content="width=device-width">
+        <meta property="og:image" content="http://dev.hel.fi/ilmakuvat/images/assa.jpg" /> 
 
-        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet">
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.no-responsive.no-icons.min.css" rel="stylesheet">
         <link href="vendor/css/slider.css" rel="stylesheet">
 
         <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -40,38 +41,41 @@
         <![endif]-->
 
         <div class="container">
-            <div class="span8 row" style="margin-bottom: 20px">
+            <div class="span10 row" style="margin-bottom: 20px">
                 <h1 style="margin-bottom: 40px">Helsinki ilmakuvina 1943–2012</h1>
-                <p>Miten Helsinki on kehittynyt vuosikymmenestä toiseen? Nyt voit kurkistaa, miten omaa asuinympäristösi on rakennettu vuodesta 1943 lähtien. Lähtöaineistona palvelu käyttää HRI-katalogiin julkaistuja <a href="http://www.hri.fi/fi/ajankohtaista/historialliset-ilmakuvat-nayttavat-helsingin-kehityksen/">avoimia ilmakuvia</a>.</p>
-                <p>Klikkaamalla Näytä rakennukset -nappulaa näet kartalla lisäksi ne rakennukset, jotka ovat valmistuneet valittuun vuoteen mennessä. Mukana ei ole purettujen rakennusten tietoja, joten vanhempien vuosien tapauksessa kaikkien rakennusten tietoja ei voida näyttää. Karttaa pitää tarkentaa, jotta rakennustietoja näytetään. <a class="readmore" href="#"><small>Lue lisää...</small></a></p>
+                <p>Miten Helsinki on kehittynyt vuosikymmenestä toiseen? Nyt voit kurkistaa, miten omaa asuinympäristösi on rakennettu vuodesta 1943 lähtien. Lähtöaineistona palvelu käyttää HRI-katalogiin julkaistuja <a href="http://www.hri.fi/fi/ajankohtaista/historialliset-ilmakuvat-nayttavat-helsingin-kehityksen/">avoimia ilmakuvia</a>.</p><a class="readmore" href="#"><small>Lue lisää...</small></a>
                 <div class="hide moreinfo">
+                    <p>Klikkaamalla Näytä rakennukset -nappulaa näet kartalla lisäksi ne rakennukset, jotka ovat valmistuneet valittuun vuoteen mennessä. Mukana ei ole purettujen rakennusten tietoja, joten vanhempien vuosien tapauksessa kaikkien rakennusten tietoja ei voida näyttää. Karttaa pitää tarkentaa, jotta rakennustietoja näytetään. Jos haluat lisätietoja yksittäisestä rakennuksesta, voit klikata sitä kartalla.</p>
                     <p>Historiallisia ilmakuvia ei ole koko nyky-Helsingin alueelta. Vuoden 1943 ilmakuva on erityisen suppea.</p>
                     <p>Palvelun on toteuttanut Helsingin kaupungin Code for Europe -kumppanikoodari. Palvelu on <a href="https://github.com/City-of-Helsinki/helsinki-orto">avointa lähdekoodia</a> ja vapaasti muiden sovelluskehittäjien hyödynnettävissä.</p>
                 </div>
             </div>
             <div style="clear: both"></div>
             <div class="span8 row">
-                <input type="text" class="span4" id="address-input" placeholder="Syötä osoite...">
-                <input type="text" class="span4" id="district-input" placeholder="Syötä kaupunginosa...">
+                <fieldset>
+                    <legend>Haku</legend>
+                    <input type="text" class="span4" id="address-input" placeholder="Syötä osoite...">
+                    <input type="text" class="span4" id="district-input" placeholder="Syötä kaupunginosa...">
+                </fieldset>
+                <hr />
             </div>
             <div style="clear: both"></div>
-            <div class="span4 row">
-                <button id="show-buildings-btn" class="btn btn-success">Näytä rakennukset</button>
-                <button id="show-orto-btn" class="btn btn-danger hide">Piilota ilmakuva</button>
+            <div class="span8 row" style="margin-bottom: 20px">
             </div>
             <div style="clear: both"></div>
-            <div id="year_list" class="span8 row" style="margin-top: 40px">
+            <div id="year_list" class="span10 row" style="margin-top: 20px">
             </div>
-            <div class="span8 row" style="margin-bottom: 20px; margin-top: 10px">
-                <div id="slider" class="span8"></div>
+            <div style="clear: both"></div>
+            <div style="margin: 20px 0px 20px 80px; width: 660px">
+                <div id="slider" style="width: 660px"></div>
             </div>
-            <div class="span8 row">
-                <div id="current_year" style="font-size: 28px; width: 100%; text-align: center; margin-bottom: 20px;">
+            <div class="span10 row">
+                <div id="current_year" style="font-size: 28px; margin-left: auto; margin-right: auto; text-align: center; margin-bottom: 20px;">
                 </div>
             </div>
-
-            <div class="well span8 row" style="margin-bottom: 10px">
-                <div id="map" style="margin-left: 10px; width: 750px; height: 600px"></div>
+            <div class="well span10 row" style="margin-bottom: 10px">
+                <div id="map" style="margin-left: 10px; width: 760px; height: 600px">
+                </div>
             </div>
             <div style="clear: both"></div>
             <div class="span8 row">
@@ -80,7 +84,7 @@
             <div class="row">
                 <ol id="nearby-addr-list"></ol>
             </div>
-            <div class="span8 row" style="margin-top: 30px;">
+            <div class="span10 row" style="margin-top: 30px;">
                 <a href="http://dev.hel.fi"><img style="width: 180px" src="images/hel-heart-dev.png"></a>
                 <a style="margin-left: 100px" href="http://www.hri.fi"><img src="images/hri.png"></a>
                 <a style="margin-left: 100px" href="http://codeforeurope.net"><img style="width: 180px" src="images/codeforeurope.png"></a>
