@@ -346,6 +346,40 @@ building_styler = (feat) ->
 
 building_layer = null
 
+display_building_modal = (feat) ->
+    $(".modal").remove()
+    modal = $("""
+    <div class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3>#{feat.address}</h3>
+        </div>
+        <div class="modal-body">
+            <table class="table table-striped"><tbody>
+            </tbody></table>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Sulje</button>
+        </div>
+    </div>
+    """)
+    $("body").append modal
+    $tbody = modal.find 'tbody'
+    for prop, val of feat.properties
+        if not val
+            continue
+        if typeof val != 'string' and typeof val != 'number'
+            continue
+        arr = window.rakennukset_meta[prop.toLowerCase()]
+        prop_name = ""
+        if arr
+            prop_name = arr[1]
+        if not prop_name
+            prop_name = prop
+        $el = $("<tr><td>#{prop_name}</td><td>#{val}</td></tr>")
+        $tbody.append $el
+    modal.modal('show')
+
 refresh_buildings = ->
     if map.getZoom() < 16 or not window.show_buildings
         if building_layer
@@ -370,7 +404,20 @@ refresh_buildings = ->
                     use = feat.properties.kayttotark_taso3
                     if use
                         use = use.replace /(\d)+ /, ""
-                    layer.bindPopup "<b>Valm.vuosi #{year}</b><br/>#{use}<br/><b>#{address}</b>"
+                    popup = $("<div></div>")
+                    popup.append $("<b>Valm.vuosi #{year}</b><br/>#{use}<br/><b>#{address}</b><br/>")
+                    button = $("<button class='btn btn-primary'>Näytä lisätietoja</button>")
+                    button.css
+                        "margin-top": "20px"
+                    popup.append button
+                    button.click ->
+                        get_wfs 'hel:rakennukset',
+                            featureID: feat.id
+                        , (data) ->
+                            obj = data.features[0]
+                            obj.address = address
+                            display_building_modal obj
+                    layer.bindPopup popup[0]
             building_layer.addTo map
 
 map.on 'moveend', refresh_buildings
