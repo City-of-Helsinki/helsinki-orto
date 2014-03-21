@@ -1,14 +1,24 @@
-bounds = new L.LatLngBounds [60.114,24.750], [60.32, 25.300]
-map = L.map 'map',
-    minZoom: 11
-    maxBounds: bounds
-map.setView([60.171944, 24.941389], 15)
-hash = new L.Hash map
+crs = null
 
-osm_layer = L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/999/256/{z}/{x}/{y}.png',
-    maxZoom: 18,
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
-)
+init_map = ->
+    crs_name = 'EPSG:3879'
+    proj_def = '+proj=tmerc +lat_0=0 +lon_0=25 +k=1 +x_0=25500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+
+    bounds = [25440000, 6630000, 25571072, 6761072]
+    crs = new L.Proj.CRS.TMS crs_name, proj_def, bounds,
+        resolutions: [256, 128, 64, 32, 16, 8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625]
+
+    map = new L.Map 'map',
+        crs: crs
+        continuusWorld: true
+        worldCopyJump: false
+        zoomControl: true
+
+    return map
+
+map = init_map()
+map.setView [60.171944, 24.941389], 7
+hash = new L.Hash map
 
 get_wfs = (type, args, callback) ->
     url = GEOSERVER_BASE_URL + 'wfs/'
@@ -24,14 +34,19 @@ get_wfs = (type, args, callback) ->
     $.getJSON url, params, callback
 
 make_tile_layer = (year) ->
-    opts =
-        tms: true
-        maxZoom: 18
-    layer = L.tileLayer GWC_BASE_URL + "tms/1.0.0/hel:orto#{year}@EPSG:900913@jpeg/{z}/{x}/{y}.jpeg", opts
-    return layer
+    geoserver_url = (layer_name, layer_fmt) ->
+        "http://geoserver.hel.fi/geoserver/gwc/service/tms/1.0.0/#{layer_name}@ETRS-GK25@#{layer_fmt}/{z}/{x}/{y}.#{layer_fmt}"
+
+    orto_layer = new L.Proj.TileLayer.TMS geoserver_url("hel:orto#{year}", "jpg"), crs,
+        maxZoom: 11
+        minZoom: 2
+        continuousWorld: true
+        tms: false
+
+    return orto_layer
 
 orto_years = [
-    1943, 1964, 1976, 1988, 2012
+    1932, 1943, 1950, 1964, 1976, 1988, 2012
 ]
 orto_layers = (make_tile_layer year for year in orto_years)
 ###
@@ -65,7 +80,7 @@ $("#address-input").typeahead(
             process_cb(ret)
         )
 )
-        
+
 nearby_markers = []
 
 find_nearby_addresses = (target_coords) ->
@@ -381,7 +396,7 @@ display_building_modal = (feat) ->
     modal.modal('show')
 
 refresh_buildings = ->
-    if map.getZoom() < 16 or not window.show_buildings
+    if map.getZoom() < 8 or not window.show_buildings
         if building_layer
             map.removeLayer building_layer
             building_layer = null
