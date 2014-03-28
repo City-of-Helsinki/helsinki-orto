@@ -484,4 +484,4 @@ RoadsControl = L.Control.extend
         $button.click @.click
         return $button[0]
 
-new RoadsControl().addTo map
+#new RoadsControl().addTo map
