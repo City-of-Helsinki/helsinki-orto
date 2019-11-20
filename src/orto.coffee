@@ -37,15 +37,17 @@ make_tile_layer = (year) ->
     geoserver_url = (layer_name, layer_fmt) ->
         "http://geoserver.hel.fi/geoserver/gwc/service/tms/1.0.0/#{layer_name}@ETRS-GK25@#{layer_fmt}/{z}/{x}/{y}.#{layer_fmt}"
 
-    if year != 2014
+    if year < 2000
         orto_layer = new L.Proj.TileLayer.TMS geoserver_url("hel:orto#{year}", "jpg"), crs,
             maxZoom: 11
             minZoom: 2
             continuousWorld: true
             tms: false
     else
+        layer_name = 'avoindata:Ortoilmakuva_' + year + '_20cm'
+
         orto_layer = L.tileLayer.wms "https://kartta.hel.fi/ws/geoserver/avoindata/wms",
-            layers: 'avoindata:Ortoilmakuva_2014'
+            layers: layer_name
             format: 'image/jpeg'
             transparent: false,
             attribution: "test attribution fixme"
@@ -54,7 +56,7 @@ make_tile_layer = (year) ->
     return orto_layer
 
 orto_years = [
-    1932, 1943, 1950, 1964, 1976, 1988, 2014
+    1932, 1943, 1950, 1964, 1976, 1988, 2015, 2017, 2019
 ]
 orto_layers = (make_tile_layer year for year in orto_years)
 
